@@ -7,9 +7,9 @@
 Далее запустил A/B тестирование на 90/10  через Jupiter: <br>
 
 ```
-# Ячейка 1: Настройка A/B теста для моделей из Canvas
+# Ячейка 1: Настройка A/B теста для моделей
 print("=" * 60)
-print("🎯 A/B ТЕСТИРОВАНИЕ ДЛЯ МОДЕЛЕЙ ИЗ CANVAS")
+print("A/B ТЕСТИРОВАНИЕ ДЛЯ МОДЕЛЕЙ")
 print("=" * 60)
 
 # 1. Импорт библиотек
@@ -24,11 +24,11 @@ session = sagemaker.Session()
 role = sagemaker.get_execution_role()
 region = session.boto_region_name
 
-print(f"📍 Регион: {region}")
-print(f"👤 Роль: {role.split('/')[-1]}")
+print(f" Регион: {region}")
+print(f" Роль: {role.split('/')[-1]}")
 print()
 
-# 3. Ваши ARN моделей из Canvas
+# 3. ARN моделей из Canvas
 CHAMPION_ARN = "arn:aws:sagemaker:us-east-1:139872254153:model/canvas-model-2026-01-05-23-31-30-548896"
 CHALLENGER_ARN = "arn:aws:sagemaker:us-east-1:139872254153:model/canvas-model-2026-01-06-00-45-46-930566"
 
@@ -39,7 +39,7 @@ def extract_model_name(arn):
 champion_model_name = extract_model_name(CHAMPION_ARN)
 challenger_model_name = extract_model_name(CHALLENGER_ARN)
 
-print(f"📋 Модели:")
+print(f" Модели:")
 print(f"   Champion: {champion_model_name}")
 print(f"   Challenger: {challenger_model_name}")
 print()
@@ -49,7 +49,7 @@ sm_client = boto3.client('sagemaker')
 runtime = boto3.client('runtime.sagemaker')
 
 # Создаём новый быстрый эндпоинт
-print("🚀 СОЗДАЁМ БЫСТРЫЙ A/B ЭНДПОИНТ")
+print(" СОЗДАЁМ A/B ЭНДПОИНТ")
 print("=" * 50)
 
 # Имена
@@ -60,10 +60,9 @@ print(f"Эндпоинт: {endpoint_name}")
 print(f"Конфигурация: {config_name}")
 print()
 
-# Создаём конфигурацию с быстрым инстансом
-print("🔧 Создаём конфигурацию...")
+# Создаём конфигурацию с 90/10
+print(" Создаём конфигурацию...")
 try:
-    # Используем ml.m5.large - быстрее запускается
     response = sm_client.create_endpoint_config(
         EndpointConfigName=config_name,
         ProductionVariants=[
@@ -83,23 +82,23 @@ try:
             }
         ]
     )
-    print("✅ Конфигурация создана")
+    print(" Конфигурация создана")
     
     # Создаём эндпоинт
-    print("🚀 Запускаем эндпоинт...")
+    print(" Запускаем эндпоинт...")
     response = sm_client.create_endpoint(
         EndpointName=endpoint_name,
         EndpointConfigName=config_name
     )
     
-    print("✅ Эндпоинт запускается!")
+    print(" Эндпоинт запускается!")
     print(f"   ARN: {response['EndpointArn']}")
     print()
-    print("⏳ Ждём 2 минуты...")
+    print(" Ждём 2 минуты...")
     print("   ml.m5.large запускается за 1-2 минуты")
     
 except Exception as e:
-    print(f"❌ Ошибка: {e}")
+    print(f" Ошибка: {e}")
     print("\nПроверьте что модели существуют:")
     print(f"  Champion: {champion_model_name}")
     print(f"  Challenger: {challenger_model_name}")
@@ -108,19 +107,19 @@ except Exception as e:
 
 Проверка работы: <br>
 ```
-# Тестируем распределение 90/10 с детальным выводом
-print("🎯 ТЕСТ РАСПРЕДЕЛЕНИЯ 90/10 (50 запросов)")
+# Тестируем распределение 90/10
+print(" ТЕСТ РАСПРЕДЕЛЕНИЯ 90/10 (50 запросов)")
 print("=" * 65)
 
 ENDPOINT_NAME = "cat-dog-ab-demo"
 
 def test_90_10_detailed(num_requests=50):
-    """Тестирует распределение 90/10 с детальным выводом"""
+    """Тестирует распределение 90/10"""
     
     results = {'champion': 0, 'challenger': 0, 'errors': 0}
     
-    print(f"📤 Отправляем {num_requests} запросов...")
-    print("📊 Ожидаем: ~90% Champion (~45), ~10% Challenger (~5)")
+    print(f" Отправляем {num_requests} запросов...")
+    print(" Ожидаем: ~90% Champion (~45), ~10% Challenger (~5)")
     print("-" * 65)
     
     for i in range(num_requests):
@@ -156,7 +155,7 @@ def test_90_10_detailed(num_requests=50):
             else:
                 model_name = "Unknown"
             
-            # Выводим результат КАК БЫЛО С 70/30
+            # Выводим результат
             print(f"{i+1:2d}. {model_name:10} - предсказание: '{predicted_label}' ({probability:.1%})")
             
         except Exception as e:
@@ -164,7 +163,7 @@ def test_90_10_detailed(num_requests=50):
             print(f"{i+1:2d}. ERROR - {str(e)[:50]}")
     
     print("=" * 65)
-    print("📈 ИТОГИ после {num_requests} запросов:")
+    print(" ИТОГИ после {num_requests} запросов:")
     print()
     print(f"   Champion:  {results['champion']:2d} запросов ({results['champion']/num_requests*100:.1f}%)")
     print(f"   Challenger: {results['challenger']:2d} запросов ({results['challenger']/num_requests*100:.1f}%)")
@@ -172,7 +171,7 @@ def test_90_10_detailed(num_requests=50):
     print()
     
     # Статистический анализ
-    print("📊 СТАТИСТИЧЕСКИЙ АНАЛИЗ 90/10:")
+    print(" СТАТИСТИЧЕСКИЙ АНАЛИЗ 90/10:")
     expected_champion = num_requests * 0.9
     expected_challenger = num_requests * 0.1
     
@@ -184,16 +183,16 @@ def test_90_10_detailed(num_requests=50):
     print()
     
     if abs(champ_diff) < 7 and abs(chall_diff) < 7:
-        print("✅ РАСПРЕДЕЛЕНИЕ 90/10 РАБОТАЕТ ПРАВИЛЬНО!")
+        print(" РАСПРЕДЕЛЕНИЕ 90/10 РАБОТАЕТ ПРАВИЛЬНО!")
         print("   Отклонение в пределах нормы для 50 запросов")
     else:
-        print("⚠️  Отклонение от ожидаемого распределения")
+        print("  Отклонение от ожидаемого распределения")
         print(f"   Champion: {champ_diff:+.1f} от ожидания")
         print(f"   Challenger: {chall_diff:+.1f} от ожидания")
     
     # Анализ предсказаний
     print()
-    print("🎯 АНАЛИЗ ПРЕДСКАЗАНИЙ:")
+    print(" АНАЛИЗ ПРЕДСКАЗАНИЙ:")
     print("   Обрати внимание: модели дают РАЗНЫЕ предсказания!")
     print("   Champion → 'Car' (машина)")
     print("   Challenger → 'Bike' (велосипед)")
@@ -208,11 +207,11 @@ results_90_10 = test_90_10_detailed(50)
 <br>
 
 ```
-🎯 ТЕСТ РАСПРЕДЕЛЕНИЯ 90/10 (50 запросов)
+ ТЕСТ РАСПРЕДЕЛЕНИЯ 90/10 (50 запросов)
 =================================================================
 Начинаем тест 90/10... (займёт ~1-2 минуты)
-📤 Отправляем 50 запросов...
-📊 Ожидаем: ~90% Champion (~45), ~10% Challenger (~5)
+ Отправляем 50 запросов...
+ Ожидаем: ~90% Champion (~45), ~10% Challenger (~5)
 -----------------------------------------------------------------
  1. Champion   - предсказание: 'Bike' (88.2%)
  2. Champion   - предсказание: 'Bike' (88.2%)
@@ -265,20 +264,20 @@ results_90_10 = test_90_10_detailed(50)
 49. Champion   - предсказание: 'Bike' (88.2%)
 50. Champion   - предсказание: 'Bike' (88.2%)
 =================================================================
-📈 ИТОГИ после {num_requests} запросов:
+ ИТОГИ после {num_requests} запросов:
 
    Champion:  47 запросов (94.0%)
    Challenger:  3 запросов (6.0%)
    Ошибки:     0
 
-📊 СТАТИСТИЧЕСКИЙ АНАЛИЗ 90/10:
+ СТАТИСТИЧЕСКИЙ АНАЛИЗ 90/10:
    Ожидалось Champion: 45.0, получили: 47
    Ожидалось Challenger: 5.0, получили: 3
 
-✅ РАСПРЕДЕЛЕНИЕ 90/10 РАБОТАЕТ ПРАВИЛЬНО!
+ РАСПРЕДЕЛЕНИЕ 90/10 РАБОТАЕТ ПРАВИЛЬНО!
    Отклонение в пределах нормы для 50 запросов
 
-🎯 АНАЛИЗ ПРЕДСКАЗАНИЙ:
+ АНАЛИЗ ПРЕДСКАЗАНИЙ:
    Обрати внимание: модели дают РАЗНЫЕ предсказания!
    Champion → 'Car' (машина)
    Challenger → 'Bike' (велосипед)
@@ -291,14 +290,14 @@ results_90_10 = test_90_10_detailed(50)
 
 ```
 # ЗАДАНИЕ 3 (исправленное): Меняем распределение на 70/30
-print("🎯 ЗАДАНИЕ 3: Traffic splitting 90/10 → 70/30 (исправлено)")
+print(" ЗАДАНИЕ 3: Traffic splitting 90/10 → 70/30 (исправлено)")
 print("=" * 60)
 
 ENDPOINT_NAME = "cat-dog-ab-demo"
 
 try:
     # 1. Меняем веса БЕЗ изменения InstanceCount
-    print("🔄 Обновляем только веса (без изменения инстансов)...")
+    print(" Обновляем только веса (без изменения инстансов)...")
     response = sm_client.update_endpoint_weights_and_capacities(
         EndpointName=ENDPOINT_NAME,
         DesiredWeightsAndCapacities=[
@@ -315,39 +314,39 @@ try:
         ]
     )
     
-    print("✅ Распределение обновлено!")
+    print(" Распределение обновлено!")
     print("   Champion: 70% (было 90%)")
     print("   Challenger: 30% (было 10%)")
     
     # 2. Ждём применения
-    print("\n⏳ Ждём 30 секунд для применения изменений...")
+    print("\n Ждём 30 секунд для применения изменений...")
     import time
     time.sleep(30)
     
     # 3. Проверяем
-    print("\n🔍 Проверяем новое распределение:")
+    print("\n Проверяем новое распределение:")
     response = sm_client.describe_endpoint(EndpointName=ENDPOINT_NAME)
     
     print("   Текущие веса на эндпоинте:")
     for variant in response['ProductionVariants']:
         print(f"   - {variant['VariantName']}: {variant['CurrentWeight']}%")
     
-    print("\n🎯 ГОТОВО! Теперь тестируем распределение 70/30")
+    print("\n ГОТОВО! Теперь тестируем распределение 70/30")
     
 except Exception as e:
-    print(f"❌ Ошибка: {e}")
-    print("\n💡 Альтернативный вариант:")
+    print(f" Ошибка: {e}")
+    print("\n Альтернативный вариант:")
     print("   Создать новую конфигурацию с весами 70/30")
 ```
 
 Так же проверил: <br>
 
 ```
-🎯 ЗАДАНИЕ 4: Тестируем распределение 70/30 (50 запросов)
+ ЗАДАНИЕ 4: Тестируем распределение 70/30 (50 запросов)
 =================================================================
 Начинаем тест... (займёт ~1-2 минуты)
-📤 Отправляем 50 запросов...
-📊 Ожидаем: ~70% Champion (~35), ~30% Challenger (~15)
+ Отправляем 50 запросов...
+ Ожидаем: ~70% Champion (~35), ~30% Challenger (~15)
 -----------------------------------------------------------------
  1. Challenger - предсказание: 'Bike' (65.3%)
  2. Champion   - предсказание: 'Car' (52.4%)
@@ -400,17 +399,17 @@ except Exception as e:
 49. Champion   - предсказание: 'Car' (52.4%)
 50. Challenger - предсказание: 'Bike' (65.3%)
 =================================================================
-📈 ИТОГИ после {num_requests} запросов:
+ ИТОГИ после {num_requests} запросов:
 
    Champion:  33 запросов (66.0%)
    Challenger: 17 запросов (34.0%)
    Ошибки:     0
 
-📊 СТАТИСТИЧЕСКИЙ АНАЛИЗ:
+ СТАТИСТИЧЕСКИЙ АНАЛИЗ:
    Ожидалось Champion: 35.0, получили: 33
    Ожидалось Challenger: 15.0, получили: 17
 
-✅ РАСПРЕДЕЛЕНИЕ 70/30 РАБОТАЕТ ПРАВИЛЬНО!
+ РАСПРЕДЕЛЕНИЕ 70/30 РАБОТАЕТ ПРАВИЛЬНО!
    Отклонение в пределах нормы
 ```
 <br>
@@ -418,11 +417,11 @@ except Exception as e:
 Далее поменял на 50/50 и так же проверил: <br>
 
 ```
-🎯 ЗАДАНИЕ 4: Тестируем распределение 50/50 (50 запросов)
+ ЗАДАНИЕ 4: Тестируем распределение 50/50 (50 запросов)
 =================================================================
 Начинаем тест... (займёт ~1-2 минуты)
-📤 Отправляем 50 запросов...
-📊 Ожидаем: ~50% Champion (~25), ~50% Challenger (~25)
+ Отправляем 50 запросов...
+ Ожидаем: ~50% Champion (~25), ~50% Challenger (~25)
 -----------------------------------------------------------------
  1. Challenger - предсказание: 'Bike' (65.3%)
  2. Challenger - предсказание: 'Bike' (65.3%)
@@ -475,18 +474,18 @@ except Exception as e:
 49. Champion   - предсказание: 'Car' (52.4%)
 50. Champion   - предсказание: 'Car' (52.4%)
 =================================================================
-📈 ИТОГИ после {num_requests} запросов:
+ ИТОГИ после {num_requests} запросов:
 
    Champion:  28 запросов (56.0%)
    Challenger: 22 запросов (44.0%)
    Ошибки:     0
 
-📊 СТАТИСТИЧЕСКИЙ АНАЛИЗ:
+ СТАТИСТИЧЕСКИЙ АНАЛИЗ:
    Ожидалось Champion: 25.0, получили: 28
    Ожидалось Challenger: 25.0, получили: 22
 
 
-✅ РАСПРЕДЕЛЕНИЕ 50/50 РАБОТАЕТ ПРАВИЛЬНО!
+ РАСПРЕДЕЛЕНИЕ 50/50 РАБОТАЕТ ПРАВИЛЬНО!
    Отклонение в пределах нормы
 ```
 
@@ -494,7 +493,7 @@ except Exception as e:
 
 ```
 # СИСТЕМА АВТОМАТИЧЕСКОГО ЛОГИРОВАНИЯ МЕТРИК
-print("📊 НАСТРОЙКА АВТОМАТИЧЕСКОГО СОХРАНЕНИЯ МЕТРИК")
+print(" НАСТРОЙКА АВТОМАТИЧЕСКОГО СОХРАНЕНИЯ МЕТРИК")
 print("=" * 60)
 
 import json
@@ -513,7 +512,7 @@ class MetricsLogger:
         """Создаёт папки для логирования"""
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
-            print(f"✅ Создана папка для логов: {self.log_dir}")
+            print(f" Создана папка для логов: {self.log_dir}")
         
         # Файлы для логов
         self.request_log_file = os.path.join(self.log_dir, "requests.csv")
@@ -679,13 +678,13 @@ class MetricsLogger:
 # Создаём логгер
 logger = MetricsLogger()
 
-print("✅ Система логирования создана!")
-print(f"📁 Папка с логами: {os.path.abspath(logger.log_dir)}")
+print(" Система логирования создана!")
+print(f" Папка с логами: {os.path.abspath(logger.log_dir)}")
 print()
 
 # Показываем статистику
 stats = logger.get_stats()
-print("📊 СТАТИСТИКА ЛОГОВ:")
+print(" СТАТИСТИКА ЛОГОВ:")
 print(f"   Всего запросов: {stats['total_requests']}")
 print(f"   Всего тестов: {stats['total_tests']}")
 print(f"   Последний тест: {stats['last_test'] or 'Нет'}")
@@ -694,13 +693,13 @@ print(f"   Последний тест: {stats['last_test'] or 'Нет'}")
 Тест с логированием: <br>
 ```
 # ОБНОВЛЁННЫЙ ТЕСТ С АВТОМАТИЧЕСКИМ ЛОГИРОВАНИЕМ
-print("🎯 ТЕСТ С АВТОМАТИЧЕСКИМ ЛОГИРОВАНИЕМ")
+print(" ТЕСТ С АВТОМАТИЧЕСКИМ ЛОГИРОВАНИЕМ")
 print("=" * 50)
 
 def test_with_logging(num_requests=10, test_name="quick_test"):
     """Тест с автоматическим логированием каждого запроса"""
     
-    print(f"📤 Отправляем {num_requests} запросов с логированием...")
+    print(f" Отправляем {num_requests} запросов с логированием...")
     
     results = {'champion': 0, 'challenger': 0, 'errors': 0}
     
@@ -763,7 +762,7 @@ def test_with_logging(num_requests=10, test_name="quick_test"):
                 latency_ms=0,
                 status=f"error: {str(e)[:50]}"
             )
-            print(f"  {i+1:2d}: Ошибка ❌")
+            print(f"  {i+1:2d}: Ошибка ")
     
     # Логируем весь тест
     logger.log_test(
@@ -773,7 +772,7 @@ def test_with_logging(num_requests=10, test_name="quick_test"):
     )
     
     print()
-    print(f"📊 Результаты теста '{test_name}':")
+    print(f" Результаты теста '{test_name}':")
     print(f"   Champion:  {results['champion']}")
     print(f"   Challenger: {results['challenger']}")
     print(f"   Ошибки:    {results['errors']}")
@@ -785,8 +784,8 @@ print("Начинаем тест с автоматическим логиров�
 test_results = test_with_logging(5, "auto_log_test")
 
 print()
-print("✅ ВСЁ СОХРАНЕНО!")
-print(f"📁 Проверь файлы в папке: {os.path.abspath(logger.log_dir)}")
+print(" ВСЁ СОХРАНЕНО!")
+print(f" Проверь файлы в папке: {os.path.abspath(logger.log_dir)}")
 ```
 
 <img width="983" height="603" alt="image" src="https://github.com/user-attachments/assets/4cc457d6-1c32-451f-8dd8-1a5a8f5c225e" /> <br>
@@ -797,7 +796,7 @@ Statistics tests: <br>
 
 ```
 # ПРОСТОЙ STATISTICAL TESTS ДЛЯ СРАВНЕНИЯ МОДЕЛЕЙ
-print("🎯 ПРОСТОЙ STATISTICAL TESTS (распределение 50/50)")
+print(" ПРОСТОЙ STATISTICAL TESTS (распределение 50/50)")
 print("=" * 70)
 
 import json
@@ -810,7 +809,7 @@ ENDPOINT_NAME = "cat-dog-ab-demo"
 TEST_IMAGE = "Bike (31).jpg"
 
 # 1. Собираем данные (30 запросов, быстро)
-print("\n📊 СБОР ДАННЫХ (30 запросов)...")
+print("\n СБОР ДАННЫХ (30 запросов)...")
 print("-" * 50)
 
 champion_data = {'probabilities': [], 'latencies': [], 'predictions': []}
@@ -851,19 +850,19 @@ for i in range(30):
             print(f"  {i+1:2d}: Challenger → {result['predicted_label']} ({result['probability']:.1%})")
             
     except Exception as e:
-        print(f"  {i+1:2d}: Ошибка ❌")
+        print(f"  {i+1:2d}: Ошибка ")
 
-print(f"\n✅ Собрано: Champion {len(champion_data['probabilities'])} | Challenger {len(challenger_data['probabilities'])}")
+print(f"\n Собрано: Champion {len(champion_data['probabilities'])} | Challenger {len(challenger_data['probabilities'])}")
 
 # 2. БАЗОВАЯ СТАТИСТИКА
-print("\n📈 БАЗОВАЯ СТАТИСТИКА:")
+print("\n БАЗОВАЯ СТАТИСТИКА:")
 print("=" * 50)
 
 # Уверенность
 champ_probs = np.array(champion_data['probabilities'])
 chall_probs = np.array(challenger_data['probabilities'])
 
-print(f"\n🎯 УВЕРЕННОСТЬ:")
+print(f"\n УВЕРЕННОСТЬ:")
 print(f"   Champion:  среднее = {np.mean(champ_probs):.4f} (±{np.std(champ_probs):.4f})")
 print(f"   Challenger: среднее = {np.mean(chall_probs):.4f} (±{np.std(chall_probs):.4f})")
 print(f"   Разница: {np.mean(chall_probs) - np.mean(champ_probs):+.4f}")
@@ -872,103 +871,103 @@ print(f"   Разница: {np.mean(chall_probs) - np.mean(champ_probs):+.4f}")
 champ_lat = np.array(champion_data['latencies'])
 chall_lat = np.array(challenger_data['latencies'])
 
-print(f"\n⚡ СКОРОСТЬ:")
+print(f"\n СКОРОСТЬ:")
 print(f"   Champion:  среднее = {np.mean(champ_lat):.1f} мс (±{np.std(champ_lat):.1f})")
 print(f"   Challenger: среднее = {np.mean(chall_lat):.1f} мс (±{np.std(chall_lat):.1f})")
 print(f"   Разница: {np.mean(chall_lat) - np.mean(champ_lat):+.1f} мс")
 
 # Предсказания
-print(f"\n🎯 ПРЕДСКАЗАНИЯ:")
+print(f"\n ПРЕДСКАЗАНИЯ:")
 print(f"   Champion всегда говорит: {set(champion_data['predictions'])}")
 print(f"   Challenger всегда говорит: {set(challenger_data['predictions'])}")
 
 # 3. ПРОСТОЙ Т-ТЕСТ
-print("\n📊 ПРОСТОЙ Т-ТЕСТ:")
+print("\n ПРОСТОЙ Т-ТЕСТ:")
 print("=" * 50)
 
 # Для уверенности
 t_stat_prob, p_value_prob = stats.ttest_ind(champ_probs, chall_probs)
-print(f"\n🎯 УВЕРЕННОСТЬ (p-value = {p_value_prob:.6f}):")
+print(f"\n УВЕРЕННОСТЬ (p-value = {p_value_prob:.6f}):")
 if p_value_prob < 0.05:
     if np.mean(chall_probs) > np.mean(champ_probs):
-        print("   ✅ Challenger ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)")
+        print("    Challenger ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)")
     else:
-        print("   ✅ Champion ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)")
+        print("    Champion ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)")
 else:
-    print("   ⚖️  Нет значимой разницы (p ≥ 0.05)")
+    print("     Нет значимой разницы (p ≥ 0.05)")
 
 # Для скорости
 t_stat_lat, p_value_lat = stats.ttest_ind(champ_lat, chall_lat)
-print(f"\n⚡ СКОРОСТЬ (p-value = {p_value_lat:.6f}):")
+print(f"\n СКОРОСТЬ (p-value = {p_value_lat:.6f}):")
 if p_value_lat < 0.05:
     if np.mean(chall_lat) < np.mean(champ_lat):
-        print("   ✅ Challenger ЗНАЧИТЕЛЬНО БЫСТРЕЕ (p < 0.05)")
+        print("    Challenger ЗНАЧИТЕЛЬНО БЫСТРЕЕ (p < 0.05)")
     else:
-        print("   ✅ Champion ЗНАЧИТЕЛЬНО БЫСТРЕЕ (p < 0.05)")
+        print("    Champion ЗНАЧИТЕЛЬНО БЫСТРЕЕ (p < 0.05)")
 else:
-    print("   ⚖️  Нет значимой разницы (p ≥ 0.05)")
+    print("     Нет значимой разницы (p ≥ 0.05)")
 
 # 4. ПРОСТОЙ ВЕРДИКТ
 print("\n" + "=" * 70)
-print("🏆 ПРОСТОЙ ВЕРДИКТ:")
+print(" ПРОСТОЙ ВЕРДИКТ:")
 print("=" * 70)
 
 score_champ = 0
 score_chall = 0
 
-print("\n📋 ОЦЕНКА ПО 3 КРИТЕРИЯМ:")
+print("\n ОЦЕНКА ПО 3 КРИТЕРИЯМ:")
 
 # 1. Уверенность
 if p_value_prob < 0.05:
     if np.mean(chall_probs) > np.mean(champ_probs):
         score_chall += 2
-        print("   📈 Challenger +2 (увереннее)")
+        print("    Challenger +2 (увереннее)")
     else:
         score_champ += 2
-        print("   📈 Champion +2 (увереннее)")
+        print("    Champion +2 (увереннее)")
 
 # 2. Скорость
 if p_value_lat < 0.05:
     if np.mean(chall_lat) < np.mean(champ_lat):
         score_chall += 1
-        print("   ⚡ Challenger +1 (быстрее)")
+        print("    Challenger +1 (быстрее)")
     else:
         score_champ += 1
-        print("   ⚡ Champion +1 (быстрее)")
+        print("    Champion +1 (быстрее)")
 
 # 3. Консистентность
 if len(set(champion_data['predictions'])) == 1:
     score_champ += 0.5
-    print("   🎯 Champion +0.5 (стабильные предсказания)")
+    print("    Champion +0.5 (стабильные предсказания)")
 if len(set(challenger_data['predictions'])) == 1:
     score_chall += 0.5
-    print("   🎯 Challenger +0.5 (стабильные предсказания)")
+    print("    Challenger +0.5 (стабильные предсказания)")
 
-print(f"\n📊 ИТОГОВЫЕ ОЧКИ: Champion {score_champ:.1f} - {score_chall:.1f} Challenger")
+print(f"\n ИТОГОВЫЕ ОЧКИ: Champion {score_champ:.1f} - {score_chall:.1f} Challenger")
 
 if score_chall > score_champ:
-    print("\n🎉 ПОБЕДИТЕЛЬ: CHALLENGER")
+    print("\n ПОБЕДИТЕЛЬ: CHALLENGER")
     print("   Рекомендация: начать Canary deployment")
 elif score_champ > score_chall:
-    print("\n🎉 ПОБЕДИТЕЛЬ: CHAMPION")  
+    print("\n ПОБЕДИТЕЛЬ: CHAMPION")  
     print("   Рекомендация: оставить текущую модель")
 else:
-    print("\n⚖️  НИЧЬЯ")
+    print("\n  НИЧЬЯ")
     print("   Рекомендация: провести больше тестов")
 
 
 
 print("\n" + "=" * 70)
-print("✅ ПРОСТОЙ STATISTICAL TESTS ЗАВЕРШЁН!")
+print(" ПРОСТОЙ STATISTICAL TESTS ЗАВЕРШЁН!")
 print("=" * 70)
 ```
 
 Результат: <br>
 ```
-🎯 ПРОСТОЙ STATISTICAL TESTS (распределение 50/50)
+ ПРОСТОЙ STATISTICAL TESTS (распределение 50/50)
 ======================================================================
 
-📊 СБОР ДАННЫХ (30 запросов)...
+ СБОР ДАННЫХ (30 запросов)...
 --------------------------------------------------
    1: Challenger → Bike (92.5%)
    2: Champion → Bike (88.2%)
@@ -1001,50 +1000,50 @@ print("=" * 70)
   29: Champion → Bike (88.2%)
   30: Champion → Bike (88.2%)
 
-✅ Собрано: Champion 22 | Challenger 8
+ Собрано: Champion 22 | Challenger 8
 
-📈 БАЗОВАЯ СТАТИСТИКА:
+ БАЗОВАЯ СТАТИСТИКА:
 ==================================================
 
-🎯 УВЕРЕННОСТЬ:
+ УВЕРЕННОСТЬ:
    Champion:  среднее = 0.8821 (±0.0000)
    Challenger: среднее = 0.9250 (±0.0000)
    Разница: +0.0430
 
-⚡ СКОРОСТЬ:
+ СКОРОСТЬ:
    Champion:  среднее = 1957.6 мс (±97.1)
    Challenger: среднее = 1879.4 мс (±106.7)
    Разница: -78.2 мс
 
-🎯 ПРЕДСКАЗАНИЯ:
+ ПРЕДСКАЗАНИЯ:
    Champion всегда говорит: {'Bike'}
    Challenger всегда говорит: {'Bike'}
 
-📊 ПРОСТОЙ Т-ТЕСТ:
+ ПРОСТОЙ Т-ТЕСТ:
 ==================================================
 
-🎯 УВЕРЕННОСТЬ (p-value = 0.000000):
-   ✅ Challenger ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)
+ УВЕРЕННОСТЬ (p-value = 0.000000):
+    Challenger ЗНАЧИТЕЛЬНО УВЕРЕННЕЕ (p < 0.05)
 
-⚡ СКОРОСТЬ (p-value = 0.077319):
-   ⚖️  Нет значимой разницы (p ≥ 0.05)
+ СКОРОСТЬ (p-value = 0.077319):
+     Нет значимой разницы (p ≥ 0.05)
 
 ======================================================================
-🏆 ПРОСТОЙ ВЕРДИКТ:
+ ПРОСТОЙ ВЕРДИКТ:
 ======================================================================
 
-📋 ОЦЕНКА ПО 3 КРИТЕРИЯМ:
-   📈 Challenger +2 (увереннее)
-   🎯 Champion +0.5 (стабильные предсказания)
-   🎯 Challenger +0.5 (стабильные предсказания)
+ ОЦЕНКА ПО 3 КРИТЕРИЯМ:
+    Challenger +2 (увереннее)
+    Champion +0.5 (стабильные предсказания)
+    Challenger +0.5 (стабильные предсказания)
 
-📊 ИТОГОВЫЕ ОЧКИ: Champion 0.5 - 2.5 Challenger
+ ИТОГОВЫЕ ОЧКИ: Champion 0.5 - 2.5 Challenger
 
-🎉 ПОБЕДИТЕЛЬ: CHALLENGER
+ ПОБЕДИТЕЛЬ: CHALLENGER
    Рекомендация: начать Canary deployment
 
 ======================================================================
-✅ ПРОСТОЙ STATISTICAL TESTS ЗАВЕРШЁН!
+ ПРОСТОЙ STATISTICAL TESTS ЗАВЕРШЁН!
 ======================================================================
 
 ```
@@ -1055,7 +1054,7 @@ Canary deployment + Rollback: <br>
 
 ```
 # CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK (ТОЛЬКО ПОСЛЕ 50/50)
-print("🚀 CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK")
+print(" CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK")
 print("=" * 70)
 
 import json
@@ -1072,8 +1071,8 @@ class SmartCanary:
         self.metrics_history = []
         self.warnings_history = []
         
-        print(f"🎯 Работаем с эндпоинтом: {endpoint_name}")
-        print("🔄 Режим: Rollback только после этапа 50/50")
+        print(f" Работаем с эндпоинтом: {endpoint_name}")
+        print(" Режим: Rollback только после этапа 50/50")
     
     def get_current_weights(self):
         """Получает текущие веса трафика"""
@@ -1082,7 +1081,7 @@ class SmartCanary:
                 EndpointName=self.endpoint_name
             )
             
-            print("\n📋 ТЕКУЩЕЕ РАСПРЕДЕЛЕНИЕ ТРАФИКА:")
+            print("\n ТЕКУЩЕЕ РАСПРЕДЕЛЕНИЕ ТРАФИКА:")
             print("-" * 40)
             
             variants = []
@@ -1100,12 +1099,12 @@ class SmartCanary:
             return variants
             
         except Exception as e:
-            print(f"❌ Ошибка: {e}")
+            print(f" Ошибка: {e}")
             return None
     
     def update_traffic_weights(self, weights):
         """Быстрое обновление весов трафика"""
-        print(f"\n⚡ Обновление распределения трафика...")
+        print(f"\n Обновление распределения трафика...")
         
         try:
             desired_weights = []
@@ -1116,7 +1115,7 @@ class SmartCanary:
                     'DesiredWeight': float(weight)
                 })
             
-            print("📊 Новое распределение:")
+            print(" Новое распределение:")
             for item in desired_weights:
                 print(f"  {item['VariantName']}: {item['DesiredWeight']}%")
             
@@ -1125,19 +1124,19 @@ class SmartCanary:
                 DesiredWeightsAndCapacities=desired_weights
             )
             
-            print(f"✅ Веса обновлены!")
-            print(f"⏳ Ждем 20 секунд для применения изменений...")
+            print(f" Веса обновлены!")
+            print(f" Ждем 20 секунд для применения изменений...")
             time.sleep(20)
             
             return True
             
         except Exception as e:
-            print(f"❌ Ошибка при обновлении весов: {e}")
+            print(f" Ошибка при обновлении весов: {e}")
             return False
     
     def collect_metrics(self, num_requests=30, stage_name=""):
         """Собирает метрики с эндпоинта"""
-        print(f"\n📊 Сбор метрик для {stage_name} ({num_requests} запросов)...")
+        print(f"\n Сбор метрик для {stage_name} ({num_requests} запросов)...")
         
         metrics = {
             'champion': {'count': 0, 'latencies': [], 'confidences': []},
@@ -1171,20 +1170,20 @@ class SmartCanary:
                     metrics['champion']['count'] += 1
                     metrics['champion']['latencies'].append(latency)
                     metrics['champion']['confidences'].append(result['probability'])
-                    symbol = "🏆"
+                    symbol = "!"
                 elif 'challenger' in variant.lower():
                     metrics['challenger']['count'] += 1
                     metrics['challenger']['latencies'].append(latency)
                     metrics['challenger']['confidences'].append(result['probability'])
-                    symbol = "🆕"
+                    symbol = "?"
                 else:
-                    symbol = "❓"
+                    symbol = "%"
                 
                 print(f"  {i+1:2d}: {symbol} {variant.split('-')[0]} ({latency:.0f}мс, {result['probability']:.1%})")
                 time.sleep(0.3)
                 
             except Exception as e:
-                print(f"  {i+1:2d}: ❌ Ошибка")
+                print(f"  {i+1:2d}:  Ошибка")
         
         # Анализ результатов
         total = metrics['champion']['count'] + metrics['challenger']['count']
@@ -1192,9 +1191,9 @@ class SmartCanary:
             champ_percent = (metrics['champion']['count'] / total) * 100
             chall_percent = (metrics['challenger']['count'] / total) * 100
             
-            print(f"\n📈 РЕЗУЛЬТАТЫ {stage_name}:")
-            print(f"  🏆 Champion: {metrics['champion']['count']} запросов ({champ_percent:.1f}%)")
-            print(f"  🆕 Challenger: {metrics['challenger']['count']} запросов ({chall_percent:.1f}%)")
+            print(f"\n РЕЗУЛЬТАТЫ {stage_name}:")
+            print(f"   Champion: {metrics['champion']['count']} запросов ({champ_percent:.1f}%)")
+            print(f"   Challenger: {metrics['challenger']['count']} запросов ({chall_percent:.1f}%)")
             
             if metrics['champion']['count'] > 0:
                 avg_lat = np.mean(metrics['champion']['latencies'])
@@ -1213,7 +1212,7 @@ class SmartCanary:
     
     def analyze_metrics(self, metrics, expected_challenger_percent, stage_name):
         """Анализирует метрики и решает нужен ли rollback"""
-        print(f"\n🔍 Анализ метрик для {stage_name}...")
+        print(f"\n Анализ метрик для {stage_name}...")
         
         warnings = []
         needs_rollback = False
@@ -1269,35 +1268,35 @@ class SmartCanary:
         
         # Показываем результаты анализа
         if warnings:
-            print("⚠️  ПРЕДУПРЕЖДЕНИЯ:")
+            print("  ПРЕДУПРЕЖДЕНИЯ:")
             for warning in warnings:
                 if "КРИТИЧЕСКОЕ" in warning:
-                    print(f"   🔴 {warning}")
+                    print(f"    {warning}")
                 else:
-                    print(f"   🟡 {warning}")
+                    print(f"    {warning}")
         else:
-            print("✅ Все метрики в норме")
+            print(" Все метрики в норме")
         
         return needs_rollback, warnings
     
     def perform_rollback(self, champion_var, challenger_var):
         """Выполняет rollback к 100% champion"""
-        print(f"\n🔄 ВЫПОЛНЯЕМ ROLLBACK К 100% CHAMPION...")
+        print(f"\n ВЫПОЛНЯЕМ ROLLBACK К 100% CHAMPION...")
         
         rollback_weights = {champion_var: 100, challenger_var: 0}
         
         if self.update_traffic_weights(rollback_weights):
-            print("✅ Rollback выполнен успешно!")
-            print("🏆 100% трафика возвращено Champion модели")
+            print(" Rollback выполнен успешно!")
+            print(" 100% трафика возвращено Champion модели")
             return True
         else:
-            print("❌ Не удалось выполнить rollback!")
+            print(" Не удалось выполнить rollback!")
             return False
     
     def run_smart_canary(self):
         """Запускает умный canary deployment с отложенным rollback"""
         print("\n" + "=" * 70)
-        print("🚀 ЗАПУСК УМНОГО CANARY DEPLOYMENT")
+        print(" ЗАПУСК УМНОГО CANARY DEPLOYMENT")
         print("=" * 70)
         print("""
 СТРАТЕГИЯ:
@@ -1307,11 +1306,11 @@ class SmartCanary:
         """)
         
         # Шаг 1: Анализ текущей конфигурации
-        print("\n1️⃣  АНАЛИЗ ТЕКУЩЕЙ КОНФИГУРАЦИИ")
+        print("\n  АНАЛИЗ ТЕКУЩЕЙ КОНФИГУРАЦИИ")
         variants = self.get_current_weights()
         
         if not variants:
-            print("❌ Не удалось получить конфигурацию")
+            print(" Не удалось получить конфигурацию")
             return
         
         # Определяем имена вариантов
@@ -1325,39 +1324,39 @@ class SmartCanary:
                 challenger_var = variant['name']
         
         if not champion_var or not challenger_var:
-            print("❌ Не удалось определить варианты моделей")
+            print(" Не удалось определить варианты моделей")
             return
         
-        print(f"\n   🏆 Champion: {champion_var}")
-        print(f"   🆕 Challenger: {challenger_var}")
+        print(f"\n    Champion: {champion_var}")
+        print(f"    Challenger: {challenger_var}")
         
         # Этапы canary deployment
         stages = [
-            ("🚀 Canary 10%", {champion_var: 90, challenger_var: 10}),
-            ("📈 Canary 25%", {champion_var: 75, challenger_var: 25}),
-            ("⚖️  Canary 50%", {champion_var: 50, challenger_var: 50}),
-            ("🔥 Canary 75%", {champion_var: 25, challenger_var: 75}),
-            ("🎯 Full 100%", {champion_var: 0, challenger_var: 100})
+            (" Canary 10%", {champion_var: 90, challenger_var: 10}),
+            (" Canary 25%", {champion_var: 75, challenger_var: 25}),
+            ("  Canary 50%", {champion_var: 50, challenger_var: 50}),
+            (" Canary 75%", {champion_var: 25, challenger_var: 75}),
+            (" Full 100%", {champion_var: 0, challenger_var: 100})
         ]
         
-        print("\n2️⃣  ПЛАН DEPLOYMENT:")
+        print("\n  ПЛАН DEPLOYMENT:")
         for name, weights in stages:
             champ_w = weights.get(champion_var, 0)
             chall_w = weights.get(challenger_var, 0)
             print(f"   • {name}: Champion {champ_w}% | Challenger {chall_w}%")
         
-        input("\n⚠️  Нажмите Enter для начала deployment...")
+        input("\n  Нажмите Enter для начала deployment...")
         
         # Выполняем каждый этап
         for stage_name, target_weights in stages:
             print(f"\n{'='*60}")
-            print(f"🎯 ЭТАП: {stage_name}")
+            print(f" ЭТАП: {stage_name}")
             print(f"{'='*60}")
             
             # 1. Обновляем распределение трафика
-            print(f"\n⚡ Установка распределения...")
+            print(f"\n Установка распределения...")
             if not self.update_traffic_weights(target_weights):
-                print(f"❌ Ошибка на этапе {stage_name}")
+                print(f" Ошибка на этапе {stage_name}")
                 break
             
             # 2. Собираем метрики
@@ -1374,32 +1373,32 @@ class SmartCanary:
             
             # 4. Принимаем решение о rollback
             if needs_rollback:
-                print(f"\n❌ КРИТИЧЕСКИЕ ПРОБЛЕМЫ НА ЭТАПЕ '{stage_name}'!")
-                print("🔄 Выполняем автоматический rollback...")
+                print(f"\n КРИТИЧЕСКИЕ ПРОБЛЕМЫ НА ЭТАПЕ '{stage_name}'!")
+                print(" Выполняем автоматический rollback...")
                 
                 if self.perform_rollback(champion_var, challenger_var):
-                    print(f"\n📋 ИТОГ: Deployment прерван на этапе {stage_name}")
+                    print(f"\n ИТОГ: Deployment прерван на этапе {stage_name}")
                     self.show_summary()
                     return
                 else:
-                    print("❌ Не удалось выполнить rollback!")
+                    print(" Не удалось выполнить rollback!")
                     break
             elif warnings:
-                print(f"\n⚠️  Есть предупреждения, но продолжаем deployment...")
+                print(f"\n  Есть предупреждения, но продолжаем deployment...")
             else:
-                print(f"\n✅ Этап '{stage_name}' успешно завершен!")
+                print(f"\n Этап '{stage_name}' успешно завершен!")
             
             # Пауза между этапами
             if stage_name != stages[-1][0]:
-                print(f"\n⏸️  Пауза 45 секунд перед следующим этапом...")
+                print(f"\n  Пауза 45 секунд перед следующим этапом...")
                 time.sleep(45)
         
         print("\n" + "=" * 70)
-        print("🎉 CANARY DEPLOYMENT ЗАВЕРШЁН УСПЕШНО!")
+        print(" CANARY DEPLOYMENT ЗАВЕРШЁН УСПЕШНО!")
         print("=" * 70)
-        print("✅ Challenger модель теперь обрабатывает 100% трафика")
-        print("✅ Все этапы пройдены")
-        print("✅ Производственная система обновлена")
+        print(" Challenger модель теперь обрабатывает 100% трафика")
+        print(" Все этапы пройдены")
+        print(" Производственная система обновлена")
         
         self.show_summary()
     
@@ -1409,10 +1408,10 @@ class SmartCanary:
             return
         
         print("\n" + "=" * 70)
-        print("📊 ИТОГОВАЯ СТАТИСТИКА")
+        print(" ИТОГОВАЯ СТАТИСТИКА")
         print("=" * 70)
         
-        print("\n📈 ИСТОРИЯ МЕТРИК:")
+        print("\n ИСТОРИЯ МЕТРИК:")
         for metrics in self.metrics_history:
             total = metrics['champion']['count'] + metrics['challenger']['count']
             if total > 0:
@@ -1420,26 +1419,26 @@ class SmartCanary:
                 print(f"  {metrics['stage_name']}: Challenger {chall_percent:.1f}% трафика")
         
         if self.warnings_history:
-            print("\n⚠️  ИСТОРИЯ ПРЕДУПРЕЖДЕНИЙ:")
+            print("\n  ИСТОРИЯ ПРЕДУПРЕЖДЕНИЙ:")
             for warning_entry in self.warnings_history:
                 print(f"\n  {warning_entry['stage']}:")
                 for warning in warning_entry['warnings']:
                     if "КРИТИЧЕСКОЕ" in warning:
-                        print(f"    🔴 {warning}")
+                        print(f"     {warning}")
                     else:
-                        print(f"    🟡 {warning}")
+                        print(f"     {warning}")
 
 # ЗАПУСК УМНОГО CANARY DEPLOYMENT
 def main():
-    print("🧠 УМНЫЙ CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK")
+    print(" УМНЫЙ CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK")
     print("=" * 70)
     print("""
 Ключевые особенности:
-1. 🎯 Rollback только ПОСЛЕ этапа 50/50
-2. 📊 До 50%: только предупреждения и сбор данных
-3. 🔥 После 50%: критические проверки с rollback
-4. 📈 Постепенное увеличение: 10% → 25% → 50% → 75% → 100%
-5. ⏱️  Более реалистичный подход для production
+1.  Rollback только ПОСЛЕ этапа 50/50
+2.  До 50%: только предупреждения и сбор данных
+3.  После 50%: критические проверки с rollback
+4.  Постепенное увеличение: 10% → 25% → 50% → 75% → 100%
+5.   Более реалистичный подход для production
     """)
     
     ENDPOINT_NAME = "cat-dog-ab-demo"
@@ -1460,8 +1459,8 @@ def simple_run():
 # Выбор режима
 if __name__ == "__main__":
     print("Выберите режим запуска:")
-    print("1. 🧠 Умный canary deployment (рекомендуется)")
-    print("2. 🚀 Простой запуск")
+    print("1.  Умный canary deployment (рекомендуется)")
+    print("2.  Простой запуск")
     
     choice = input("\nВаш выбор (1-2): ").strip()
     
@@ -1470,7 +1469,7 @@ if __name__ == "__main__":
     elif choice == "2":
         simple_run()
     else:
-        print("❌ Неверный выбор, запускаю умную версию...")
+        print(" Неверный выбор, запускаю умную версию...")
         main()
 ```
 
@@ -1482,25 +1481,25 @@ if __name__ == "__main__":
 🚀 CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK
 ======================================================================
 Выберите режим запуска:
-1. 🧠 Умный canary deployment (рекомендуется)
-2. 🚀 Простой запуск
+1.  Умный canary deployment (рекомендуется)
+2.  Простой запуск
 
 Ваш выбор (1-2):  1
-🧠 УМНЫЙ CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK
+ УМНЫЙ CANARY DEPLOYMENT С ОТЛОЖЕННЫМ ROLLBACK
 ======================================================================
 
 Ключевые особенности:
-1. 🎯 Rollback только ПОСЛЕ этапа 50/50
-2. 📊 До 50%: только предупреждения и сбор данных
-3. 🔥 После 50%: критические проверки с rollback
-4. 📈 Постепенное увеличение: 10% → 25% → 50% → 75% → 100%
-5. ⏱️  Более реалистичный подход для production
+1.  Rollback только ПОСЛЕ этапа 50/50
+2.  До 50%: только предупреждения и сбор данных
+3.  После 50%: критические проверки с rollback
+4.  Постепенное увеличение: 10% → 25% → 50% → 75% → 100%
+5.   Более реалистичный подход для production
     
-🎯 Работаем с эндпоинтом: cat-dog-ab-demo
-🔄 Режим: Rollback только после этапа 50/50
+ Работаем с эндпоинтом: cat-dog-ab-demo
+ Режим: Rollback только после этапа 50/50
 
 ======================================================================
-🚀 ЗАПУСК УМНОГО CANARY DEPLOYMENT
+ ЗАПУСК УМНОГО CANARY DEPLOYMENT
 ======================================================================
 
 СТРАТЕГИЯ:
@@ -1509,319 +1508,291 @@ if __name__ == "__main__":
 • Rollback срабатывает ТОЛЬКО при серьезных проблемах после 50%
         
 
-1️⃣  АНАЛИЗ ТЕКУЩЕЙ КОНФИГУРАЦИИ
+  АНАЛИЗ ТЕКУЩЕЙ КОНФИГУРАЦИИ
 
-📋 ТЕКУЩЕЕ РАСПРЕДЕЛЕНИЕ ТРАФИКА:
+ ТЕКУЩЕЕ РАСПРЕДЕЛЕНИЕ ТРАФИКА:
 ----------------------------------------
   champion-variant: 100.0%
   challenger-variant: 0.0%
 
-   🏆 Champion: champion-variant
-   🆕 Challenger: challenger-variant
+    Champion: champion-variant
+    Challenger: challenger-variant
 
-2️⃣  ПЛАН DEPLOYMENT:
-   • 🚀 Canary 10%: Champion 90% | Challenger 10%
-   • 📈 Canary 25%: Champion 75% | Challenger 25%
-   • ⚖️  Canary 50%: Champion 50% | Challenger 50%
-   • 🔥 Canary 75%: Champion 25% | Challenger 75%
-   • 🎯 Full 100%: Champion 0% | Challenger 100%
+  ПЛАН DEPLOYMENT:
+   •  Canary 10%: Champion 90% | Challenger 10%
+   •  Canary 25%: Champion 75% | Challenger 25%
+   •   Canary 50%: Champion 50% | Challenger 50%
+   •  Canary 75%: Champion 25% | Challenger 75%
+   •  Full 100%: Champion 0% | Challenger 100%
 
-⚠️  Нажмите Enter для начала deployment... 
+  Нажмите Enter для начала deployment... 
 
 ============================================================
-🎯 ЭТАП: 🚀 Canary 10%
+ ЭТАП:  Canary 10%
 ============================================================
 
-⚡ Установка распределения...
+ Установка распределения...
 
-⚡ Обновление распределения трафика...
-📊 Новое распределение:
+ Обновление распределения трафика...
+ Новое распределение:
   champion-variant: 90.0%
   challenger-variant: 10.0%
-✅ Веса обновлены!
-⏳ Ждем 20 секунд для применения изменений...
+ Веса обновлены!
+ Ждем 20 секунд для применения изменений...
 
-📊 Сбор метрик для 🚀 Canary 10% (25 запросов)...
-   1: 🏆 champion (1877мс, 88.2%)
-   2: 🏆 champion (1764мс, 88.2%)
-   3: 🏆 champion (1755мс, 88.2%)
-   4: 🏆 champion (1815мс, 88.2%)
-   5: 🏆 champion (1785мс, 88.2%)
-   6: 🆕 challenger (2373мс, 92.5%)
-   7: 🏆 champion (1756мс, 88.2%)
-   8: 🏆 champion (1774мс, 88.2%)
-   9: 🏆 champion (1746мс, 88.2%)
-  10: 🏆 champion (1902мс, 88.2%)
-  11: 🏆 champion (1927мс, 88.2%)
-  12: 🏆 champion (1758мс, 88.2%)
-  13: 🏆 champion (1754мс, 88.2%)
-  14: 🏆 champion (1779мс, 88.2%)
-  15: 🏆 champion (1783мс, 88.2%)
-  16: 🏆 champion (1777мс, 88.2%)
-  17: 🏆 champion (1746мс, 88.2%)
-  18: 🏆 champion (1760мс, 88.2%)
-  19: 🏆 champion (1789мс, 88.2%)
-  20: 🏆 champion (1752мс, 88.2%)
-  21: 🏆 champion (1762мс, 88.2%)
-  22: 🏆 champion (1790мс, 88.2%)
-  23: 🏆 champion (1771мс, 88.2%)
-  24: 🏆 champion (1748мс, 88.2%)
-  25: 🏆 champion (1754мс, 88.2%)
+ Сбор метрик для  Canary 10% (25 запросов)...
+   1:  champion (1877мс, 88.2%)
+   2:  champion (1764мс, 88.2%)
+   3:  champion (1755мс, 88.2%)
+   4:  champion (1815мс, 88.2%)
+   5:  champion (1785мс, 88.2%)
+   6:  challenger (2373мс, 92.5%)
+   7:  champion (1756мс, 88.2%)
+   8:  champion (1774мс, 88.2%)
+   9:  champion (1746мс, 88.2%)
+  10:  champion (1902мс, 88.2%)
+  11:  champion (1927мс, 88.2%)
+  12:  champion (1758мс, 88.2%)
+  13:  champion (1754мс, 88.2%)
+  14:  champion (1779мс, 88.2%)
+  15:  champion (1783мс, 88.2%)
+  16:  champion (1777мс, 88.2%)
+  17:  champion (1746мс, 88.2%)
+  18:  champion (1760мс, 88.2%)
+  19:  champion (1789мс, 88.2%)
+  20:  champion (1752мс, 88.2%)
+  21:  champion (1762мс, 88.2%)
+  22:  champion (1790мс, 88.2%)
+  23:  champion (1771мс, 88.2%)
+  24:  champion (1748мс, 88.2%)
+  25:  champion (1754мс, 88.2%)
 
-📈 РЕЗУЛЬТАТЫ 🚀 Canary 10%:
-  🏆 Champion: 24 запросов (96.0%)
-  🆕 Challenger: 1 запросов (4.0%)
+ РЕЗУЛЬТАТЫ  Canary 10%:
+   Champion: 24 запросов (96.0%)
+   Challenger: 1 запросов (4.0%)
     • Задержка: 1784 мс
     • Уверенность: 88.2%
     • Задержка: 2373 мс
     • Уверенность: 92.5%
 
-🔍 Анализ метрик для 🚀 Canary 10%...
-⚠️  ПРЕДУПРЕЖДЕНИЯ:
-   🟡 Мало трафика challenger: 4.0% (ожидалось ~10%)
+ Анализ метрик для  Canary 10%...
+  ПРЕДУПРЕЖДЕНИЯ:
+    Мало трафика challenger: 4.0% (ожидалось ~10%)
 
-⚠️  Есть предупреждения, но продолжаем deployment...
+  Есть предупреждения, но продолжаем deployment...
 
-⏸️  Пауза 45 секунд перед следующим этапом...
+  Пауза 45 секунд перед следующим этапом...
 
 ============================================================
-🎯 ЭТАП: 📈 Canary 25%
+ ЭТАП:  Canary 25%
 ============================================================
 
-⚡ Установка распределения...
+ Установка распределения...
 
-⚡ Обновление распределения трафика...
-📊 Новое распределение:
+ Обновление распределения трафика...
+ Новое распределение:
   champion-variant: 75.0%
   challenger-variant: 25.0%
-✅ Веса обновлены!
-⏳ Ждем 20 секунд для применения изменений...
+ Веса обновлены!
+ Ждем 20 секунд для применения изменений...
 
-📊 Сбор метрик для 📈 Canary 25% (25 запросов)...
-   1: 🆕 challenger (2102мс, 92.5%)
-   2: 🏆 champion (1873мс, 88.2%)
-   3: 🏆 champion (1757мс, 88.2%)
-   4: 🆕 challenger (2157мс, 92.5%)
-   5: 🏆 champion (1816мс, 88.2%)
-   6: 🆕 challenger (2173мс, 92.5%)
-   7: 🏆 champion (1755мс, 88.2%)
-   8: 🏆 champion (1766мс, 88.2%)
-   9: 🏆 champion (1799мс, 88.2%)
-  10: 🏆 champion (1752мс, 88.2%)
-  11: 🆕 challenger (1982мс, 92.5%)
-  12: 🏆 champion (1794мс, 88.2%)
-  13: 🆕 challenger (1988мс, 92.5%)
-  14: 🏆 champion (1756мс, 88.2%)
-  15: 🏆 champion (1750мс, 88.2%)
-  16: 🏆 champion (1774мс, 88.2%)
-  17: 🏆 champion (1758мс, 88.2%)
-  18: 🏆 champion (1905мс, 88.2%)
-  19: 🆕 challenger (1951мс, 92.5%)
-  20: 🏆 champion (1908мс, 88.2%)
-  21: 🏆 champion (1754мс, 88.2%)
-  22: 🆕 challenger (1939мс, 92.5%)
-  23: 🏆 champion (1781мс, 88.2%)
-  24: 🏆 champion (1835мс, 88.2%)
-  25: 🏆 champion (1769мс, 88.2%)
+ Сбор метрик для 📈 Canary 25% (25 запросов)...
+   1:  challenger (2102мс, 92.5%)
+   2:  champion (1873мс, 88.2%)
+   3:  champion (1757мс, 88.2%)
+   4:  challenger (2157мс, 92.5%)
+   5:  champion (1816мс, 88.2%)
+   6:  challenger (2173мс, 92.5%)
+   7:  champion (1755мс, 88.2%)
+   8:  champion (1766мс, 88.2%)
+   9:  champion (1799мс, 88.2%)
+  10:  champion (1752мс, 88.2%)
+  11:  challenger (1982мс, 92.5%)
+  12:  champion (1794мс, 88.2%)
+  13:  challenger (1988мс, 92.5%)
+  14:  champion (1756мс, 88.2%)
+  15:  champion (1750мс, 88.2%)
+  16:  champion (1774мс, 88.2%)
+  17:  champion (1758мс, 88.2%)
+  18:  champion (1905мс, 88.2%)
+  19:  challenger (1951мс, 92.5%)
+  20:  champion (1908мс, 88.2%)
+  21:  champion (1754мс, 88.2%)
+  22:  challenger (1939мс, 92.5%)
+  23:  champion (1781мс, 88.2%)
+  24:  champion (1835мс, 88.2%)
+  25:  champion (1769мс, 88.2%)
 
-📈 РЕЗУЛЬТАТЫ 📈 Canary 25%:
-  🏆 Champion: 18 запросов (72.0%)
-  🆕 Challenger: 7 запросов (28.0%)
+РЕЗУЛЬТАТЫ  Canary 25%:
+   Champion: 18 запросов (72.0%)
+   Challenger: 7 запросов (28.0%)
     • Задержка: 1795 мс
     • Уверенность: 88.2%
     • Задержка: 2042 мс
     • Уверенность: 92.5%
 
-🔍 Анализ метрик для 📈 Canary 25%...
-✅ Все метрики в норме
+ Анализ метрик для  Canary 25%...
+ Все метрики в норме
 
-✅ Этап '📈 Canary 25%' успешно завершен!
+ Этап ' Canary 25%' успешно завершен!
 
-⏸️  Пауза 45 секунд перед следующим этапом...
+  Пауза 45 секунд перед следующим этапом...
 
 ============================================================
-🎯 ЭТАП: ⚖️  Canary 50%
+ ЭТАП:   Canary 50%
 ============================================================
 
-⚡ Установка распределения...
+ Установка распределения...
 
-⚡ Обновление распределения трафика...
-📊 Новое распределение:
+ Обновление распределения трафика...
+ Новое распределение:
   champion-variant: 50.0%
   challenger-variant: 50.0%
-✅ Веса обновлены!
-⏳ Ждем 20 секунд для применения изменений...
+ Веса обновлены!
+ Ждем 20 секунд для применения изменений...
 
-📊 Сбор метрик для ⚖️  Canary 50% (25 запросов)...
-   1: 🏆 champion (1823мс, 88.2%)
-   2: 🆕 challenger (1939мс, 92.5%)
-   3: 🏆 champion (1831мс, 88.2%)
-   4: 🆕 challenger (1952мс, 92.5%)
-   5: 🏆 champion (1810мс, 88.2%)
-   6: 🏆 champion (1756мс, 88.2%)
-   7: 🆕 challenger (1979мс, 92.5%)
-   8: 🏆 champion (1752мс, 88.2%)
-   9: 🆕 challenger (1889мс, 92.5%)
-  10: 🏆 champion (1758мс, 88.2%)
-  11: 🆕 challenger (1899мс, 92.5%)
-  12: 🆕 challenger (1861мс, 92.5%)
-  13: 🆕 challenger (1895мс, 92.5%)
-  14: 🏆 champion (1751мс, 88.2%)
-  15: 🏆 champion (1754мс, 88.2%)
-  16: 🏆 champion (1756мс, 88.2%)
-  17: 🏆 champion (1792мс, 88.2%)
-  18: 🆕 challenger (1836мс, 92.5%)
-  19: 🏆 champion (1756мс, 88.2%)
-  20: 🏆 champion (1760мс, 88.2%)
-  21: 🏆 champion (1792мс, 88.2%)
-  22: 🏆 champion (1749мс, 88.2%)
-  23: 🏆 champion (1751мс, 88.2%)
-  24: 🏆 champion (1765мс, 88.2%)
-  25: 🏆 champion (1751мс, 88.2%)
+ Сбор метрик для   Canary 50% (25 запросов)...
+   1:  champion (1823мс, 88.2%)
+   2:  challenger (1939мс, 92.5%)
+   3:  champion (1831мс, 88.2%)
+   4:  challenger (1952мс, 92.5%)
+   5:  champion (1810мс, 88.2%)
+   6:  champion (1756мс, 88.2%)
+   7:  challenger (1979мс, 92.5%)
+   8:  champion (1752мс, 88.2%)
+   9:  challenger (1889мс, 92.5%)
+  10:  champion (1758мс, 88.2%)
+  11:  challenger (1899мс, 92.5%)
+  12:  challenger (1861мс, 92.5%)
+  13:  challenger (1895мс, 92.5%)
+  14:  champion (1751мс, 88.2%)
+  15:  champion (1754мс, 88.2%)
+  16:  champion (1756мс, 88.2%)
+  17:  champion (1792мс, 88.2%)
+  18:  challenger (1836мс, 92.5%)
+  19:  champion (1756мс, 88.2%)
+  20:  champion (1760мс, 88.2%)
+  21:  champion (1792мс, 88.2%)
+  22:  champion (1749мс, 88.2%)
+  23:  champion (1751мс, 88.2%)
+  24:  champion (1765мс, 88.2%)
+  25:  champion (1751мс, 88.2%)
 
-📈 РЕЗУЛЬТАТЫ ⚖️  Canary 50%:
-  🏆 Champion: 17 запросов (68.0%)
-  🆕 Challenger: 8 запросов (32.0%)
+ РЕЗУЛЬТАТЫ   Canary 50%:
+   Champion: 17 запросов (68.0%)
+   Challenger: 8 запросов (32.0%)
     • Задержка: 1771 мс
     • Уверенность: 88.2%
     • Задержка: 1906 мс
     • Уверенность: 92.5%
 
-🔍 Анализ метрик для ⚖️  Canary 50%...
-✅ Все метрики в норме
+ Анализ метрик для   Canary 50%...
+ Все метрики в норме
 
-✅ Этап '⚖️  Canary 50%' успешно завершен!
+ Этап '  Canary 50%' успешно завершен!
 
-⏸️  Пауза 45 секунд перед следующим этапом...
+  Пауза 45 секунд перед следующим этапом...
 
 ============================================================
-🎯 ЭТАП: 🔥 Canary 75%
+ ЭТАП:  Canary 75%
 ============================================================
 
-⚡ Установка распределения...
+ Установка распределения...
 
-⚡ Обновление распределения трафика...
-📊 Новое распределение:
+ Обновление распределения трафика...
+ Новое распределение:
   champion-variant: 25.0%
   challenger-variant: 75.0%
-✅ Веса обновлены!
-⏳ Ждем 20 секунд для применения изменений...
+ Веса обновлены!
+ Ждем 20 секунд для применения изменений...
 
-📊 Сбор метрик для 🔥 Canary 75% (25 запросов)...
-   1: 🆕 challenger (1990мс, 92.5%)
-   2: 🆕 challenger (1912мс, 92.5%)
-   3: 🆕 challenger (1921мс, 92.5%)
-   4: 🏆 champion (1762мс, 88.2%)
-   5: 🏆 champion (1771мс, 88.2%)
-   6: 🆕 challenger (1951мс, 92.5%)
-   7: 🆕 challenger (1954мс, 92.5%)
-   8: 🆕 challenger (1960мс, 92.5%)
-   9: 🆕 challenger (1922мс, 92.5%)
-  10: 🆕 challenger (1900мс, 92.5%)
-  11: 🆕 challenger (1869мс, 92.5%)
-  12: 🆕 challenger (1916мс, 92.5%)
-  13: 🆕 challenger (1925мс, 92.5%)
-  14: 🆕 challenger (1914мс, 92.5%)
-  15: 🆕 challenger (1943мс, 92.5%)
-  16: 🏆 champion (1752мс, 88.2%)
-  17: 🆕 challenger (1959мс, 92.5%)
-  18: 🆕 challenger (1928мс, 92.5%)
-  19: 🆕 challenger (1955мс, 92.5%)
-  20: 🆕 challenger (1874мс, 92.5%)
-  21: 🏆 champion (1756мс, 88.2%)
-  22: 🆕 challenger (1909мс, 92.5%)
-  23: 🆕 challenger (1887мс, 92.5%)
-  24: 🆕 challenger (1939мс, 92.5%)
-  25: 🆕 challenger (1930мс, 92.5%)
+ Сбор метрик для  Canary 75% (25 запросов)...
+   1:  challenger (1990мс, 92.5%)
+   2:  challenger (1912мс, 92.5%)
+   3:  challenger (1921мс, 92.5%)
+   4:  champion (1762мс, 88.2%)
+   5:  champion (1771мс, 88.2%)
+   6:  challenger (1951мс, 92.5%)
+   7:  challenger (1954мс, 92.5%)
+   8:  challenger (1960мс, 92.5%)
+   9:  challenger (1922мс, 92.5%)
+  10:  challenger (1900мс, 92.5%)
+  11:  challenger (1869мс, 92.5%)
+  12:  challenger (1916мс, 92.5%)
+  13:  challenger (1925мс, 92.5%)
+  14:  challenger (1914мс, 92.5%)
+  15:  challenger (1943мс, 92.5%)
+  16:  champion (1752мс, 88.2%)
+  17:  challenger (1959мс, 92.5%)
+  18:  challenger (1928мс, 92.5%)
+  19:  challenger (1955мс, 92.5%)
+  20:  challenger (1874мс, 92.5%)
+  21:  champion (1756мс, 88.2%)
+  22:  challenger (1909мс, 92.5%)
+  23:  challenger (1887мс, 92.5%)
+  24:  challenger (1939мс, 92.5%)
+  25:  challenger (1930мс, 92.5%)
 
-📈 РЕЗУЛЬТАТЫ 🔥 Canary 75%:
-  🏆 Champion: 4 запросов (16.0%)
-  🆕 Challenger: 21 запросов (84.0%)
+ РЕЗУЛЬТАТЫ  Canary 75%:
+   Champion: 4 запросов (16.0%)
+   Challenger: 21 запросов (84.0%)
     • Задержка: 1760 мс
     • Уверенность: 88.2%
     • Задержка: 1927 мс
     • Уверенность: 92.5%
 
-🔍 Анализ метрик для 🔥 Canary 75%...
-✅ Все метрики в норме
+ Анализ метрик для  Canary 75%...
+ Все метрики в норме
 
-✅ Этап '🔥 Canary 75%' успешно завершен!
+ Этап ' Canary 75%' успешно завершен!
 
-⏸️  Пауза 45 секунд перед следующим этапом...
+  Пауза 45 секунд перед следующим этапом...
 
 ============================================================
-🎯 ЭТАП: 🎯 Full 100%
+ ЭТАП:  Full 100%
 ============================================================
 
-⚡ Установка распределения...
+ Установка распределения...
 
-⚡ Обновление распределения трафика...
-📊 Новое распределение:
+ Обновление распределения трафика...
+ Новое распределение:
   champion-variant: 0.0%
   challenger-variant: 100.0%
-✅ Веса обновлены!
-⏳ Ждем 20 секунд для применения изменений...
+ Веса обновлены!
+ Ждем 20 секунд для применения изменений...
 
-📊 Сбор метрик для 🎯 Full 100% (25 запросов)...
-   1: 🆕 challenger (1951мс, 92.5%)
-   2: 🆕 challenger (2029мс, 92.5%)
-   3: 🆕 challenger (2081мс, 92.5%)
-   4: 🆕 challenger (1894мс, 92.5%)
-   5: 🆕 challenger (1972мс, 92.5%)
-   6: 🆕 challenger (1883мс, 92.5%)
-   7: 🆕 challenger (1914мс, 92.5%)
-   8: 🆕 challenger (1969мс, 92.5%)
-   9: 🆕 challenger (1883мс, 92.5%)
-  10: 🆕 challenger (1886мс, 92.5%)
-  11: 🆕 challenger (1916мс, 92.5%)
-  12: 🆕 challenger (1917мс, 92.5%)
-  13: 🆕 challenger (1916мс, 92.5%)
-  14: 🆕 challenger (1956мс, 92.5%)
-  15: 🆕 challenger (1924мс, 92.5%)
-  16: 🆕 challenger (1926мс, 92.5%)
-  17: 🆕 challenger (1894мс, 92.5%)
-  18: 🆕 challenger (1902мс, 92.5%)
-  19: 🆕 challenger (1905мс, 92.5%)
-  20: 🆕 challenger (1918мс, 92.5%)
-  21: 🆕 challenger (1911мс, 92.5%)
-  22: 🆕 challenger (1919мс, 92.5%)
-  23: 🆕 challenger (1939мс, 92.5%)
-  24: 🆕 challenger (1898мс, 92.5%)
-  25: 🆕 challenger (1895мс, 92.5%)
+ Сбор метрик для  Full 100% (25 запросов)...
+   1:  challenger (1951мс, 92.5%)
+   2:  challenger (2029мс, 92.5%)
+   3:  challenger (2081мс, 92.5%)
+   4:  challenger (1894мс, 92.5%)
+   5:  challenger (1972мс, 92.5%)
+   6:  challenger (1883мс, 92.5%)
+   7:  challenger (1914мс, 92.5%)
+   8:  challenger (1969мс, 92.5%)
+   9:  challenger (1883мс, 92.5%)
+  10:  challenger (1886мс, 92.5%)
+  11:  challenger (1916мс, 92.5%)
+  12:  challenger (1917мс, 92.5%)
+  13:  challenger (1916мс, 92.5%)
+  14:  challenger (1956мс, 92.5%)
+  15:  challenger (1924мс, 92.5%)
+  16:  challenger (1926мс, 92.5%)
+  17:  challenger (1894мс, 92.5%)
+  18:  challenger (1902мс, 92.5%)
+  19:  challenger (1905мс, 92.5%)
+  20:  challenger (1918мс, 92.5%)
+  21:  challenger (1911мс, 92.5%)
+  22:  challenger (1919мс, 92.5%)
+  23:  challenger (1939мс, 92.5%)
+  24:  challenger (1898мс, 92.5%)
+  25:  challenger (1895мс, 92.5%)
 
-📈 РЕЗУЛЬТАТЫ 🎯 Full 100%:
-  🏆 Champion: 0 запросов (0.0%)
-  🆕 Challenger: 25 запросов (100.0%)
+ РЕЗУЛЬТАТЫ Full 100%:
+   Champion: 0 запросов (0.0%)
+   Challenger: 25 запросов (100.0%)
     • Задержка: 1928 мс
     • Уверенность: 92.5%
-
-🔍 Анализ метрик для 🎯 Full 100%...
-✅ Все метрики в норме
-
-✅ Этап '🎯 Full 100%' успешно завершен!
-
-======================================================================
-🎉 CANARY DEPLOYMENT ЗАВЕРШЁН УСПЕШНО!
-======================================================================
-✅ Challenger модель теперь обрабатывает 100% трафика
-✅ Все этапы пройдены
-✅ Производственная система обновлена
-
-======================================================================
-📊 ИТОГОВАЯ СТАТИСТИКА
-======================================================================
-
-📈 ИСТОРИЯ МЕТРИК:
-  🚀 Canary 10%: Challenger 4.0% трафика
-  📈 Canary 25%: Challenger 28.0% трафика
-  ⚖️  Canary 50%: Challenger 32.0% трафика
-  🔥 Canary 75%: Challenger 84.0% трафика
-  🎯 Full 100%: Challenger 100.0% трафика
-
-⚠️  ИСТОРИЯ ПРЕДУПРЕЖДЕНИЙ:
-
-  🚀 Canary 10%:
-    🟡 Мало трафика challenger: 4.0% (ожидалось ~10%)
 
 ```
 
